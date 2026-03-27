@@ -1,15 +1,17 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { UserEntity } from '../users/entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
-
+import { JwtService } from '@nestjs/jwt';
+import { LoginDto } from './dto/login.dto';
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -43,4 +45,42 @@ export class AuthService {
       createdAt: saved.createdAt,
     };
   }
+
+  async login(dto:LoginDto){
+    const email = dto.email.trim().toLowerCase();
+
+    const user = await this.userRepository
+        .createQueryBuilder("u")
+        .addSelect("u.passwordHash")
+        .where("u.email = :email",{email})
+        .getOne()
+        
+        if(!user){
+          throw new UnauthorizedException("Invalid credentials");
+        }
+
+        const ok = await bcrypt.compare(dto.password, user.passwordHash);
+
+        if(!ok){
+          throw new UnauthorizedException("Invalid credentials");
+        }
+        
+        if(!user.isActive){
+          throw new UnauthorizedException("Account is not active");
+        }
+
+        const payload = {sub:user.id,email:user.email};
+
+        const accessToken = await this.jwtService.signAsync(payload);
+        return{
+          accessToken,
+          user:{
+            id:user.id,
+            email:user.email,
+            firstName:user.firstName,
+            lastName:user.lastName,
+          }
+        }
+  }
+
 }
