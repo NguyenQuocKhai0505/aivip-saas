@@ -1,0 +1,63 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: aivip-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-aivip}
+      POSTGRES_USER: ${POSTGRES_USER:-aivip}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aivip_dev_password}
+    ports:
+      - "15432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - aivip-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aivip} -d ${POSTGRES_DB:-aivip}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: aivip-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-khainguyen1234567k@gmail.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-0939938489Khai???}
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - aivip-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    container_name: aivip-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "16379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - aivip-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+networks:
+  aivip-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+  redis_data:
