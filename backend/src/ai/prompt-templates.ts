@@ -11,6 +11,18 @@ export const OUTPUT_SCENE_FORMAT: readonly string[] = [
   'Không viết thành một bài báo/đoạn văn liền mạch; tuyệt đối tách từng Scene. Không thêm phần mở đầu/kết luận ngoài 3 Scene trừ khi được nêu trong chỉ dẫn chủ đề.',
 ];
 
+export function isJsonScriptTopic(topic: VideoTopic): boolean {
+  return topic === VideoTopic.ENGLISH || topic === VideoTopic.AFFILIATE;
+}
+export const JSON_SCENE_OUTPUT_RULES: readonly string[] = [
+  'Chỉ trả về MỘT object JSON hợp lệ, không markdown, không text trước/sau JSON.',
+  'Cấu trúc: { "scenes": [ { "scene_number": 1, "duration_seconds": 10, "visual_prompt": "...", "audio_script": "..." }, ... ] } — đúng 3 phần tử; scene_number 1, 2, 3.',
+  'duration_seconds: số nguyên (4–14) mỗi scene; TỔNG ba scene phải khoảng 27–33 giây (video TikTok ~30s).',
+  'visual_prompt: viết như prompt Text-to-Video / Image-to-Video cho Veo 3 — CỰC chi tiết: tỉ lệ khung (vd 9:16), loại shot (wide/medium/close), góc máy, ánh sáng (hướng, độ cứng/mềm), chuyển động camera (pan, push-in, handheld…), chuyển động chủ thể, mood/màu, độ sâu trường ảnh; liên tục nhân vật/sản phẩm giữa các scene nếu cùng một video.',
+  'audio_script: lời thoại/lồng tiếng khớp đúng scene và độ dài tương ứng duration_seconds.',
+];
+
+
 export type PromptTemplate = {
   role: string;
   instructions: string[];
@@ -21,28 +33,28 @@ export const PROMPT_TEMPLATES: Record<VideoTopic, PromptTemplate> = {
   [VideoTopic.ENGLISH]: {
     role: 'Bạn là giáo viên tiếng Anh chuyên làm nội dung TikTok ngắn.',
     instructions: [
-      'Dựa trên từ khóa, soạn kịch bản 3 phân cảnh (mỗi cảnh ~8–12 giây lời thoại).',
-      'Scene 1: Chào hỏi + giới thiệu chủ đề từ khóa.',
-      'Scene 2: Dạy 1–2 từ vựng mới gắn với từ khóa (có ví dụ cực ngắn).',
-      'Scene 3: Câu kết + nhắc lại takeaway.',
-      'Visual phải gợi cảnh quay phù hợp (lớp học mini, bảng chữ, v.v.).',
+      'Output phải là JSON đúng schema ở phần ĐỊNH DẠNG OUTPUT (không viết kịch dạng văn tự do).',
+      'Dựa trên từ khóa, điền đúng 3 object trong scenes; chia duration_seconds sao tổng ~30s.',
+      'Scene 1: chào + giới thiệu chủ đề từ khóa.',
+      'Scene 2: 1–2 từ vựng mới gắn từ khóa + ví dụ cực ngắn — đặt trong audio_script; visual_prompt mô tả cảnh (lớp học mini, bảng chữ, v.v.).',
+      'Scene 3: câu kết + takeaway trong audio_script; visual_prompt khớp cảnh kết.',
     ],
     outputStyle: [
-      'Giọng thân thiện; tiếng Việt + tiếng Anh đơn giản xen kẽ tự nhiên.',
+      'Giọng thân thiện; tiếng Việt + tiếng Anh đơn giản trong audio_script.',
       'Câu ngắn, dễ đọc cho lồng tiếng.',
     ],
   },
   [VideoTopic.AFFILIATE]: {
     role: 'Bạn là chuyên gia marketing chuyển đổi trực tiếp cho video ngắn.',
     instructions: [
-      'Dựa trên từ khóa (sản phẩm/dịch vụ), viết kịch bản 3 phân cảnh.',
-      'Scene 1: Hook mạnh trong 2–3 giây đầu + nêu vấn đề.',
-      'Scene 2: 2–3 lợi ích cụ thể, có bằng chứng/xúc cảm nhẹ.',
-      'Scene 3: CTA rõ ràng (mua/thử) + tạo nhẹ cảm giác cấp bách, không phóng đại sai sự thật.',
-      'Visual mô tả sản phẩm, cảnh dùng thử, hoặc demo rõ ràng.',
+      'Output phải là JSON đúng schema ở phần ĐỊNH DẠNG OUTPUT (không viết kịch dạng văn tự do).',
+      'Dựa trên từ khóa (sản phẩm/dịch vụ), điền đúng 3 object trong scenes; duration_seconds hợp lý, tổng ~30s.',
+      'Scene 1 — visual_prompt: hook thị giác; audio_script: hook + nêu vấn đề trong 2–3 giây thoại.',
+      'Scene 2 — 2–3 lợi ích cụ thể trong audio_script; visual_prompt: demo / bằng chứng trực quan.',
+      'Scene 3 — CTA mua/thử trong audio_script; visual_prompt hỗ trợ CTA, không phóng đại sai sự thật.',
     ],
     outputStyle: [
-      'Tiếng Việt, năng động kiểu TikTok.',
+      'Tiếng Việt, năng động kiểu TikTok trong audio_script.',
       'Câu gọn, dễ đọc to.',
     ],
   },

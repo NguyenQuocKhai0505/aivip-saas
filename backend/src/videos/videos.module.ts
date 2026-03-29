@@ -4,10 +4,10 @@ import { VideoEntity } from './entities/video.entity';
 import { UserEntity } from '../users/entities/user.entity';
 import { VideosService } from './videos.service';
 import { VideosController } from './videos.controller';
-import { AiModule } from '../ai/ai.module';
+import { VideoQueueModule } from '../queue/video.queue.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([VideoEntity, UserEntity]), AiModule],
+  imports: [TypeOrmModule.forFeature([VideoEntity, UserEntity]), VideoQueueModule],
   controllers: [VideosController],
   providers: [VideosService],
 })

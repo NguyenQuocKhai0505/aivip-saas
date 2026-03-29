@@ -5,7 +5,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { VideoEntity, VideoStatus } from './entities/video.entity';
 import { UserEntity } from '../users/entities/user.entity';
-import { AiService } from '../ai/ai.service';
+import { InjectQueue } from '@nestjs/bullmq';
+import { VideoProductionJobData } from '../queue/video-production.types';
+import { Queue } from 'bullmq';
 
 @Injectable()
 export class VideosService {
@@ -14,23 +16,44 @@ export class VideosService {
     private readonly videoRepository: Repository<VideoEntity>,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-    private readonly aiService: AiService,
+    @InjectQueue('video-production')
+    private readonly videoProductionQueue: Queue<VideoProductionJobData>,
   ) {}
 
   async create(userId: string, dto: CreateVideoDto) {
     const user = await this.userRepository.findOneByOrFail({ id: userId });
-    const aiScript = await this.aiService.generateScript(dto.topic, dto.keyword);
 
     const video = this.videoRepository.create({
       title: dto.title,
       topic: dto.topic,
       rawInput: dto.keyword,
-      aiScript,
-      status: VideoStatus.DONE,
+      status: VideoStatus.PENDING,
       user,
+      aiScript: '',
     });
+    const saved = await this.videoRepository.save(video);
 
-    return this.videoRepository.save(video);
+    const job = await this.videoProductionQueue.add(
+      'video-production',
+      {
+        videoId: saved.id,
+        userId,
+        title: dto.title,
+        topic: dto.topic,
+        keyword: dto.keyword,
+      },
+      {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 5000 },
+        removeOnComplete: 100,
+        removeOnFail: 50,
+      },
+    );
+
+    return {
+      ...saved,
+      jobId: job.id,
+    };
   }
 
   findAll() {

@@ -20,7 +20,9 @@ export enum VideoTopic {
 
 export enum VideoStatus {
   PENDING = 'PENDING',
+  SCRIPT_COMPLETED = 'SCRIPT_COMPLETED',
   DONE = 'DONE',
+  FAILED = 'FAILED',
 }
 
 @Entity('videos')
