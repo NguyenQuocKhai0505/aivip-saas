@@ -1,12 +1,14 @@
 
 import {
-    Column,
-    CreateDateColumn,
-    Entity,
-    Index,
-    PrimaryGeneratedColumn,
-    UpdateDateColumn,
-  } from 'typeorm';
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { VideoEntity } from '../../videos/entities/video.entity';
 
 @Entity("users")
 export class UserEntity{
@@ -35,4 +37,7 @@ export class UserEntity{
 
     @UpdateDateColumn({type:"timestamp"})
     updatedAt!:Date
+
+    @OneToMany(() => VideoEntity, (video) => video.user)
+    videos!: VideoEntity[];
 }
