@@ -5,6 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { VideoEntity } from '../videos/entities/video.entity';
 import { VideoProductionProcessor } from "./video-production.processor";
 import { AiModule } from '../ai/ai.module';
+import { ScraperModule } from '../scraper/scraper.module';
+import { AudioModule } from '../audio/audio.module';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { AiModule } from '../ai/ai.module';
     }),
     TypeOrmModule.forFeature([VideoEntity]),
     AiModule,
+    ScraperModule,
+    AudioModule,
   ],
   providers: [VideoProductionProcessor],
   exports: [BullModule], // để module khác dùng InjectQueue

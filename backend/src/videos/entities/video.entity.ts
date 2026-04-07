@@ -42,6 +42,9 @@ export class VideoEntity {
   @Column({ type: 'text' })
   aiScript!: string;
 
+  @Column({ type: 'jsonb', nullable: true })
+  metadata!: Record<string, unknown> | null;
+
   @Column({ type: 'enum', enum: VideoStatus, default: VideoStatus.PENDING })
   status!: VideoStatus;
 

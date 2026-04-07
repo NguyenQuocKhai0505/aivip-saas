@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUrl, MaxLength } from 'class-validator';
 import { VideoTopic } from '../entities/video.entity';
 
 export class CreateVideoDto {
@@ -14,4 +14,10 @@ export class CreateVideoDto {
   @IsNotEmpty()
   @MaxLength(500)
   keyword!: string;
+
+  @IsString()
+  @IsOptional()
+  @IsUrl()
+  @MaxLength(2000)
+  productUrl?: string;
 }

@@ -9,6 +9,21 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { VideoProductionJobData } from '../queue/video-production.types';
 import { Queue } from 'bullmq';
 
+export const mockProductData = {
+  platform: 'coupang',
+  sourceUrl:
+    'https://www.coupang.com/vp/products/6577822503?itemId=14790109733&vendorItemId=90822605251',
+  title: 'Coupang Mock: Wireless Earbuds (Example)',
+  price: '20640',
+  description: 'Mock product data for pipeline testing (title/price/images).',
+  discountRate: '15%',
+  images: [
+    'https://static.coupangcdn.com/image/product/image/vendoritem/2023/01/01/mock-1.jpg',
+    'https://static.coupangcdn.com/image/product/image/vendoritem/2023/01/01/mock-2.jpg',
+    'https://static.coupangcdn.com/image/product/image/vendoritem/2023/01/01/mock-3.jpg',
+  ],
+} as const;
+
 @Injectable()
 export class VideosService {
   constructor(
@@ -41,6 +56,7 @@ export class VideosService {
         title: dto.title,
         topic: dto.topic,
         keyword: dto.keyword,
+        productUrl: dto.productUrl,
       },
       {
         attempts: 3,
